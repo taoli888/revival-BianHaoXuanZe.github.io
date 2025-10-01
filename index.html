@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复兴车队编号选择系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .contact-info {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .contact-info p {
+            margin: 5px 0;
+            font-size: 1rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            flex: 1;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+        
+        .step.active .step-circle {
+            background-color: #3498db;
+            color: white;
+            box-shadow: 0 0 0 5px rgba(52, 152, 219, 0.2);
+        }
+        
+        .step.completed .step-circle {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 14px;
+            color: #999;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .step.active .step-label {
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        .step.completed .step-label {
+            color: #2ecc71;
+        }
+        
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            padding: 20px 0;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .step-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        
+        .step-description {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .number-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .number-option {
+            padding: 15px 5px;
+            text-align: center;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 18px;
+            position: relative;
+        }
+        
+        .number-option:hover {
+            background-color: #e3f2fd;
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        
+        .number-option.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .number-option.occupied {
+            background-color: #ffebee;
+            color: #e74c3c;
+            border-color: #e74c3c;
+            cursor: not-allowed;
+        }
+        
+        .number-option.occupied::after {
+            content: '已占用';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            right: 0;
+            font-size: 10px;
+            color: #e74c3c;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .required::after {
+            content: ' *';
+            color: #e74c3c;
+        }
+        
+        .optional {
+            color: #7f8c8d;
+            font-weight: normal;
+        }
+        
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, input[type="email"]:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-prev {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+        
+        .btn-next, .btn-submit {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:disabled {
+            background-color: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+        
+        .success-message h2 {
+            color: #2ecc71;
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+        
+        .success-message p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .btn-exit {
+            background: linear-gradient(to right, #2ecc71, #1abc9c);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .confirmation-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .confirmation-details p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .confirmation-details strong {
+            color: #2c3e50;
+        }
+        
+        .main-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .main-icon {
+            font-size: 100px;
+            color: #3498db;
+            margin-bottom: 30px;
+        }
+        
+        .main-screen h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        
+        .main-screen p {
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+        
+        .btn-start {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .number-selection {
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            }
+            
+            button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            .step-circle {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .main-screen h1 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .notification.error {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">操作成功！</div>
+    
+    <div class="container">
+        <div class="contact-info">
+            <p><i class="fas fa-user-headset"></i> 如有填写问题请联系接待员</p>
+            <p><i class="fas fa-laptop-code"></i> 如有网页问题请联系逃离（2669874596）</p>
+        </div>
+        
+        <!-- 主界面 -->
+        <div class="form-step active" id="mainScreen">
+            <div class="main-screen">
+                <div class="main-icon">
+                    <i class="fas fa-car-alt"></i>
+                </div>
+                <h1>复兴车队编号选择系统</h1>
+                <p>欢迎使用复兴车队编号选择系统，请点击下方按钮开始选择您的专属编号并完成信息登记</p>
+                <button class="btn-start" id="startBtn">
+                    <i class="fas fa-play-circle"></i> 开始选择编号
+                </button>
+            </div>
+        </div>
+        
+        <!-- 步骤1：选择编号 -->
+        <div class="form-step" id="step1">
+            <div class="header">
+                <h1><i class="fas fa-hashtag"></i> 选择您的玩家编号</h1>
+                <p>从21-1000之间选择一个可用的编号</p>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step active">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">选择玩家编号</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">填写玩家信息</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">提交完成</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i> 提示：您可以通过搜索框快速查找编号，已被占用的编号将无法选择
+            </div>
+            
+            <div class="search-box">
+                <input type="number" id="numberSearch" placeholder="输入编号进行搜索 (21-1000)" min="21" max="1000">
+                <button id="searchBtn">搜索</button>
+            </div>
+            
+            <div class="number-selection" id="numberGrid">
+                <!-- 编号将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-prev" id="backToMain"><i class="fas fa-arrow-left"></i> 返回主界面</button>
+                <button class="btn-next" id="nextToStep2" disabled>下一步 <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+        
+        <!-- 步骤2：填写信息 -->
+        <div class="form-step" id="step2">
+            <div class="header">
+                <h1><i class="fas fa-user-edit"></i> 填写您的玩家信息</h1>
+                <p>请准确填写以下信息，以便我们为您创建游戏账号</p>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step completed">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">选择玩家编号</span>
+                </div>
+                <div class="step active">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">填写玩家信息</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">提交完成</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="gameName" class="required">游戏名字</label>
+                <input type="text" id="gameName" placeholder="请输入您的游戏名字">
+                <div class="error-message" id="nameError">游戏名字不能为空，且长度应在2-20个字符之间</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tmpId" class="required">TMP ID</label>
+                <input type="text" id="tmpId" placeholder="请输入您的TMP ID">
+                <div class="error-message" id="tmpIdError">TMP ID不能为空</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="required">可联系的邮箱</label>
+                <input type="email" id="email" placeholder="请输入您的邮箱地址">
+                <div class="error-message" id="emailError">请输入有效的邮箱地址</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tmpAlt">TMP ID小号 <span class="optional">(选填)</span></label>
+                <input type="text" id="tmpAlt" placeholder="请输入您的TMP ID小号（如有）">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-prev" id="prevToStep1"><i class="fas fa-arrow-left"></i> 上一步</button>
+                <button class="btn-next" id="nextToStep3">下一步 <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+        
+        <!-- 步骤3：提交完成 -->
+        <div class="form-step" id="step3">
+            <div class="header">
+                <h1><i class="fas fa-check-circle"></i> 确认提交信息</h1>
+                <p>请确认您的信息是否正确</p>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step completed">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">选择玩家编号</span>
+                </div>
+                <div class="step completed">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">填写玩家信息</span>
+                </div>
+                <div class="step active">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">提交完成</span>
+                </div>
+            </div>
+            
+            <div class="confirmation-details">
+                <p><strong>玩家编号：</strong> <span id="confirmNumber"></span></p>
+                <p><strong>游戏名字：</strong> <span id="confirmName"></span></p>
+                <p><strong>TMP ID：</strong> <span id="confirmTmpId"></span></p>
+                <p><strong>邮箱地址：</strong> <span id="confirmEmail"></span></p>
+                <p><strong>TMP ID小号：</strong> <span id="confirmTmpAlt"></span></p>
+                <p><strong>注册时间：</strong> <span id="confirmTime"></span></p>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-prev" id="prevToStep2"><i class="fas fa-arrow-left"></i> 上一步</button>
+                <button class="btn-submit" id="submitInfo"><i class="fas fa-paper-plane"></i> 提交信息</button>
+            </div>
+        </div>
+        
+        <!-- 完成页面 -->
+        <div class="form-step" id="step4">
+            <div class="success-message">
+                <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                <h2>提交成功！</h2>
+                <p>您的平台账号将在1个工作日内发送至您的邮箱</p>
+                <p>请留意您的邮箱 <span id="successEmail" style="font-weight: bold; color: #2c3e50;"></span></p>
+                <p>感谢您的注册，您现在可以安全退出</p>
+                <button class="btn-exit" id="exitBtn"><i class="fas fa-sign-out-alt"></i> 退出系统</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 当前步骤
+        let currentStep = 'mainScreen';
+        
+        // 选中的编号和游戏信息
+        let selectedNumber = null;
+        let gameName = '';
+        let tmpId = '';
+        let email = '';
+        let tmpAlt = '';
+        
+        // 初始化编号选项
+        function initNumberGrid() {
+            const numberGrid = document.getElementById('numberGrid');
+            numberGrid.innerHTML = '';
+            
+            // 获取已占用的编号
+            const occupiedNumbers = getOccupiedNumbers();
+            
+            // 生成21-1000的编号
+            for (let i = 21; i <= 1000; i++) {
+                const numberOption = document.createElement('div');
+                numberOption.className = 'number-option';
+                numberOption.textContent = i;
+                numberOption.dataset.number = i;
+                
+                // 检查编号是否已被占用
+                if (occupiedNumbers.includes(i)) {
+                    numberOption.classList.add('occupied');
+                    numberOption.textContent = i;
+                } else {
+                    numberOption.addEventListener('click', selectNumber);
+                }
+                
+                numberGrid.appendChild(numberOption);
+            }
+        }
+        
+        // 获取已占用的编号
+        function getOccupiedNumbers() {
+            // 从localStorage获取已占用的编号
+            // 在实际应用中，这里应该从服务器获取数据
+            const storedData = localStorage.getItem('playerRegistrations');
+            if (storedData) {
+                const registrations = JSON.parse(storedData);
+                return registrations.map(reg => reg.number);
+            }
+            return [];
+        }
+        
+        // 选择编号
+        function selectNumber(e) {
+            // 清除之前的选择
+            document.querySelectorAll('.number-option:not(.occupied)').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // 设置当前选择
+            e.target.classList.add('selected');
+            selectedNumber = parseInt(e.target.dataset.number);
+            
+            // 启用下一步按钮
+            document.getElementById('nextToStep2').disabled = false;
+            
+            // 显示通知
+            showNotification(`已选择编号: ${selectedNumber}`);
+        }
+        
+        // 搜索编号
+        function setupSearch() {
+            const searchInput = document.getElementById('numberSearch');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            searchBtn.addEventListener('click', function() {
+                const searchValue = parseInt(searchInput.value);
+                if (isNaN(searchValue) || searchValue < 21 || searchValue > 1000) {
+                    showNotification('请输入21-1000之间的有效编号');
+                    return;
+                }
+                
+                // 滚动到对应的编号
+                const targetOption = document.querySelector(`.number-option[data-number="${searchValue}"]`);
+                if (targetOption) {
+                    targetOption.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 高亮显示
+                    targetOption.style.backgroundColor = '#fff3cd';
+                    targetOption.style.borderColor = '#ffc107';
+                    setTimeout(() => {
+                        if (!targetOption.classList.contains('selected') && !targetOption.classList.contains('occupied')) {
+                            targetOption.style.backgroundColor = '';
+                            targetOption.style.borderColor = '';
+                        }
+                    }, 2000);
+                } else {
+                    showNotification('未找到该编号');
+                }
+            });
+            
+            // 按回车键也可以搜索
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+        }
+        
+        // 显示指定步骤
+        function showStep(stepId) {
+            // 隐藏所有步骤
+            document.querySelectorAll('.form-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // 显示当前步骤
+            document.getElementById(stepId).classList.add('active');
+            
+            // 更新当前步骤
+            currentStep = stepId;
+        }
+        
+        // 验证游戏名称
+        function validateGameName() {
+            const nameInput = document.getElementById('gameName');
+            const nameError = document.getElementById('nameError');
+            
+            if (nameInput.value.trim() === '' || nameInput.value.trim().length < 2 || nameInput.value.trim().length > 20) {
+                nameError.style.display = 'block';
+                return false;
+            } else {
+                nameError.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // 验证TMP ID
+        function validateTmpId() {
+            const tmpIdInput = document.getElementById('tmpId');
+            const tmpIdError = document.getElementById('tmpIdError');
+            
+            if (tmpIdInput.value.trim() === '') {
+                tmpIdError.style.display = 'block';
+                return false;
+            } else {
+                tmpIdError.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // 验证邮箱
+        function validateEmail() {
+            const emailInput = document.getElementById('email');
+            const emailError = document.getElementById('emailError');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!emailRegex.test(emailInput.value.trim())) {
+                emailError.style.display = 'block';
+                return false;
+            } else {
+                emailError.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // 验证所有表单字段
+        function validateForm() {
+            const isNameValid = validateGameName();
+            const isTmpIdValid = validateTmpId();
+            const isEmailValid = validateEmail();
+            
+            return isNameValid && isTmpIdValid && isEmailValid;
+        }
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = isError ? 'notification error' : 'notification';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 提交信息到后台（模拟）
+        function submitToBackend() {
+            // 在实际应用中，这里应该发送AJAX请求到服务器
+            const registrationData = {
+                number: selectedNumber,
+                name: gameName,
+                tmpId: tmpId,
+                email: email,
+                tmpAlt: tmpAlt,
+                timestamp: new Date().toLocaleString('zh-CN')
+            };
+            
+            // 保存到localStorage模拟后台存储
+            const storedData = localStorage.getItem('playerRegistrations');
+            let registrations = storedData ? JSON.parse(storedData) : [];
+            
+            // 检查编号是否已被占用（防止重复提交）
+            if (registrations.some(reg => reg.number === selectedNumber)) {
+                return Promise.resolve(false);
+            }
+            
+            registrations.push(registrationData);
+            localStorage.setItem('playerRegistrations', JSON.stringify(registrations));
+            
+            // 模拟网络延迟
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(true);
+                }, 1500);
+            });
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化编号网格
+            initNumberGrid();
+            
+            // 设置搜索功能
+            setupSearch();
+            
+            // 开始按钮
+            document.getElementById('startBtn').addEventListener('click', function() {
+                showStep('step1');
+            });
+            
+            // 返回主界面
+            document.getElementById('backToMain').addEventListener('click', function() {
+                showStep('mainScreen');
+            });
+            
+            // 步骤1到步骤2
+            document.getElementById('nextToStep2').addEventListener('click', function() {
+                if (selectedNumber) {
+                    showStep('step2');
+                }
+            });
+            
+            // 步骤2到步骤1
+            document.getElementById('prevToStep1').addEventListener('click', function() {
+                showStep('step1');
+            });
+            
+            // 步骤2到步骤3
+            document.getElementById('nextToStep3').addEventListener('click', function() {
+                if (validateForm()) {
+                    gameName = document.getElementById('gameName').value.trim();
+                    tmpId = document.getElementById('tmpId').value.trim();
+                    email = document.getElementById('email').value.trim();
+                    tmpAlt = document.getElementById('tmpAlt').value.trim();
+                    
+                    // 更新确认信息
+                    document.getElementById('confirmNumber').textContent = selectedNumber;
+                    document.getElementById('confirmName').textContent = gameName;
+                    document.getElementById('confirmTmpId').textContent = tmpId;
+                    document.getElementById('confirmEmail').textContent = email;
+                    document.getElementById('confirmTmpAlt').textContent = tmpAlt || '无';
+                    document.getElementById('confirmTime').textContent = new Date().toLocaleString('zh-CN');
+                    
+                    showStep('step3');
+                }
+            });
+            
+            // 步骤3到步骤2
+            document.getElementById('prevToStep2').addEventListener('click', function() {
+                showStep('step2');
+            });
+            
+            // 提交信息
+            document.getElementById('submitInfo').addEventListener('click', function() {
+                const submitBtn = document.getElementById('submitInfo');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+                
+                // 模拟提交到后台
+                submitToBackend().then(success => {
+                    if (success) {
+                        document.getElementById('successEmail').textContent = email;
+                        showStep('step4');
+                        showNotification('信息提交成功！');
+                    } else {
+                        showNotification('提交失败，该编号可能已被占用', true);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交信息';
+                    }
+                });
+            });
+            
+            // 退出系统
+            document.getElementById('exitBtn').addEventListener('click', function() {
+                showNotification('感谢使用，再见！');
+                // 在实际应用中，这里可以重定向到其他页面或关闭窗口
+                setTimeout(() => {
+                    // 模拟退出操作
+                    document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%); color: white; font-size: 24px;">已安全退出系统</div>';
+                }, 1000);
+            });
+            
+            // 实时验证表单输入
+            document.getElementById('gameName').addEventListener('input', function() {
+                validateGameName();
+            });
+            
+            document.getElementById('tmpId').addEventListener('input', function() {
+                validateTmpId();
+            });
+            
+            document.getElementById('email').addEventListener('input', function() {
+                validateEmail();
+            });
+        });
+    </script>
+</body>
+</html>
